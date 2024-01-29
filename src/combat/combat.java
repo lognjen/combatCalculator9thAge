@@ -28,7 +28,7 @@ public class combat {
         this.unit2 = unit2;
     }
 
-     int initiative(){
+    int initiative(){
         return unit1.agi - unit2.agi;
     }
 
@@ -95,9 +95,40 @@ public class combat {
         return numberOfWounds;
     }
 
+    int getTargetArmourSave(int ap, int arm){
+        return 7 - arm + ap;
+    }
+
+    int rollArmourSaves(unit unit1, unit unit2, int numberOfWounds){
+        int armourSave  = getTargetArmourSave(unit1.ap, unit2.arm);
+        if(armourSave > 6)
+            return numberOfWounds;
+
+        Random rand = new Random();
+        for(int i = 0; i < numberOfWounds; i++){
+            if(rand.nextInt(6) + 1 >= armourSave)
+                numberOfWounds--;
+        }
+        return  numberOfWounds;
+
+    }
+
+    int rollAegisSaves(unit unit, int numberOfWounds){
+        Random rand = new Random();
+        for(int i = 0; i < numberOfWounds; i++){
+            if(rand.nextInt(6) + 1 >= unit.aeg)
+                numberOfWounds--;
+        }
+        return  numberOfWounds;
+    }
+
     int strikes(unit unit1, unit unit2){
         int numberOfHits = rollToHit(unit1, unit2);
         int numberOfWounds = rollToWound(unit1, unit2, numberOfHits);
+        numberOfWounds = rollArmourSaves(unit1, unit2, numberOfWounds);
+        if(unit2.aeg != null)
+            numberOfWounds = rollAegisSaves(unit2, numberOfWounds);
+        return numberOfWounds;
         //implements armor and special saves and then return number of wounds
     }
 
@@ -166,9 +197,94 @@ public class combat {
 
 
 
-    public String calculate(){
+     int calculate(unit  unit1, unit unit2, int whoCharged){
+        boolean combatOngoing = true;
+        int firstRound = 0;
+        int winner = 0;
+
+        while(combatOngoing) {
+            int roundResults = combatRound(unit1, unit2);
+            if(firstRound > 0){
+                whoCharged = 0;
+            }
+            firstRound++;
+            if(whoCharged == 1){
+                roundResults++;
+            }
+            else if(whoCharged == -1){
+                roundResults--;
+            }
+
+            if(unit1.bnb == true)
+                roundResults++;
+            if(unit2.bnb == true)
+                roundResults--;
+
+            int rankBonus1, rankBonus2;
+            if(unit1.columns < 8){
+                rankBonus1 = unit1.models / unit1.columns - 1;
+                if(rankBonus1 > 3)
+                    rankBonus1 = 3;
+                roundResults += rankBonus1;
+            }
+            if(unit2.columns < 8){
+                rankBonus2 = unit2.models / unit2.columns - 1;
+                if(rankBonus2 > 3)
+                    rankBonus2 = 3;
+                roundResults -= rankBonus2;
+            }
 
 
+            rankBonus1 = unit1.models/ unit1.columns;
+            rankBonus2 = unit2.models / unit2.columns;
+            Random rand = new Random();
+            if(roundResults > 0){
+                if(rankBonus2 > rankBonus1){
+                    if(rand.nextInt(6) + rand.nextInt(6) + 2 > unit2.dis){
+                        combatOngoing = false;
+                        winner = 1;
+                    }
+                }
+                if(rand.nextInt(6) + rand.nextInt(6) + 2 > unit2.dis - roundResults) {
+                    combatOngoing = false;
+                    winner = 1;
+                }
+            }
 
+            if(roundResults < 0){
+                if(rankBonus1 > rankBonus2){
+                    if(rand.nextInt(6) + rand.nextInt(6) + 2 > unit1.dis) {
+                        combatOngoing = false;
+                        winner = -1;
+                    }
+                }
+                if(rand.nextInt(6) + rand.nextInt(6) + 2 > unit1.dis - roundResults) {
+                    combatOngoing = false;
+                    winner = -1;
+                }
+            }
+            if(unit1.models == 0){
+                combatOngoing = false;
+                winner = -2;
+            }
+            if(unit2.models == 0){
+                combatOngoing = false;
+                winner = 2;
+            }
+        }
+        return winner;
+    }
+
+        public String simulate(unit unit1, unit unit2, int whoCharged, int numberOfSimulations){//need to add pursuit and chance to destroy the entire unit, maybe even chance to win in first round
+                int wins1 = 0, wins2 = 0, weirdBugs = 0;
+                for(int i = 0; i < numberOfSimulations; i++){
+                    int winner = calculate(unit1, unit2, whoCharged);
+                    if(winner > 0)
+                        wins1++;
+                    else if(winner < 0)
+                        wins2++;
+                    else weirdBugs++;
+                }
+                return unit1.name + "has won " + wins1 + "combats, while " +  unit2.name + " has won " + wins2 + " combats, out of " + numberOfSimulations;
         }
     }

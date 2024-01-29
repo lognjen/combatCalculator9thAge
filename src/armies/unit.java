@@ -2,7 +2,7 @@ package armies;
 
 public class unit {
     public String name, type;
-    public Integer adv, mar, dis, hp, def, res, arm, att, off, str, ap, agi, models, columns;
+    public Integer adv, mar, dis, hp, def, res, arm, att, off, str, ap, agi, aeg, models, columns;
 
     public Boolean champ, bnb, mus;
 
@@ -21,6 +21,30 @@ public class unit {
         this.str = str;
         this.ap = ap;
         this.agi = agi;
+        this.models = models;
+        this.columns = columns;
+        this.champ = champ;
+        this.bnb = bnb;
+        this.mus = mus;
+        this.aeg = null;
+    }
+
+    public unit(String name, String type, Integer adv, Integer mar, Integer dis, Integer hp, Integer def, Integer res, Integer arm, Integer att, Integer off, Integer str, Integer ap, Integer agi, Integer aeg, Integer models, Integer columns, Boolean champ, Boolean bnb, Boolean mus) {
+        this.name = name;
+        this.type = type;
+        this.adv = adv;
+        this.mar = mar;
+        this.dis = dis;
+        this.hp = hp;
+        this.def = def;
+        this.res = res;
+        this.arm = arm;
+        this.att = att;
+        this.off = off;
+        this.str = str;
+        this.ap = ap;
+        this.agi = agi;
+        this.aeg = aeg;
         this.models = models;
         this.columns = columns;
         this.champ = champ;
